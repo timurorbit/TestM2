@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace _3_Scripts.Data
+namespace _3_Scripts.Data.Structure
 {
     [Serializable]
-    public class PlayerProgress : SavedProgress
+    public class PlayerProgress : ISavedProgress
     {
         public int CurrentLevel;
         public float PreviousHighScore;
@@ -12,12 +12,6 @@ namespace _3_Scripts.Data
         {
             CurrentLevel = currentLevel;
             PreviousHighScore = previousHighScore;
-        }
-
-        public PlayerProgress()
-        {
-            CurrentLevel = 0;
-            PreviousHighScore = 0;
         }
     }
 }

@@ -1,5 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using _3_Scripts.Data;
+using _3_Scripts.Data.Structure;
 using UnityEngine;
 
 public class OptionsUI : MonoBehaviour
@@ -10,15 +13,18 @@ public class OptionsUI : MonoBehaviour
     CustomToggle vibrationToggle;
 
     Animator animator;
-    bool isOpen = false;
+    bool isOpen;
+
+    private PlayerUISettings playerUISettings;
     void Awake()
     {
         animator = GetComponent<Animator>();
         animator.speed = 1.0f / Time.timeScale;
         isOpen = false;
         animator.SetBool("isOpen", isOpen);
-        colorblindToggle.SetEnabled(SaveData.CurrentColorList == 1);
-        vibrationToggle.SetEnabled(SaveData.VibrationEnabled == 1);
+        playerUISettings = PlayerStats.Instance.playerUISettings;
+        colorblindToggle.SetEnabled(playerUISettings.CurrentColorList == 1);
+        vibrationToggle.SetEnabled(playerUISettings.VibrationEnabled);
     }
 
     public void Toggle()
@@ -29,18 +35,23 @@ public class OptionsUI : MonoBehaviour
 
     public void OnColorblindClick(bool value)
     {
-        if (SaveData.CurrentColorList == 1 != value) {
-            SaveData.CurrentColorList = value ? 1 : 0;
-            TileColorManager.Instance.SetColorList(SaveData.CurrentColorList);
+        if (playerUISettings.CurrentColorList == 1 != value) {
+            playerUISettings.CurrentColorList = value ? 1 : 0;
+            TileColorManager.Instance.SetColorList(playerUISettings.CurrentColorList);
         }
     }
 
     public void OnVibrationClick(bool value)
     {
-        if (SaveData.VibrationEnabled == 1 != value) {
-            SaveData.VibrationEnabled = value ? 1 : 0;
+        if (playerUISettings.VibrationEnabled != value) {
+            playerUISettings.VibrationEnabled = value;
             if (value)
                 Handheld.Vibrate();
         }
+    }
+
+    private void OnDisable()
+    {
+       PlayerStats.Instance.saveUISettings();
     }
 }

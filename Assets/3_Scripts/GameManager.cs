@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using _3_Scripts.Data;
+using _3_Scripts.Data.Structure;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -51,6 +53,9 @@ public class GameManager : Singleton<GameManager>
     int ballCount;
     GameState gameState = GameState.Intro;
 
+    private PlayerProgress playerProgress;
+    private PlayerUISettings playerUISettings;
+
     private void Awake()
     {
         Application.targetFrameRate = 60;
@@ -58,27 +63,40 @@ public class GameManager : Singleton<GameManager>
         animator.speed = 1.0f / Time.timeScale;
         FxPool.Instance.EnsureQuantity(tileExplosionFx, 3);
         FxPool.Instance.EnsureQuantity(tileDestroyFx, 30);
+        PlayerStats.Instance.LoadAll();
     }
 
     private void Start()
     {
-        TileColorManager.Instance.SetColorList(SaveData.CurrentColorList);
-        TileColorManager.Instance.SetMaxColors(Mathf.FloorToInt(colorCountPerLevel.Evaluate(SaveData.CurrentLevel)), true);
-        minPercent = percentRequiredPerLevel.Evaluate(SaveData.CurrentLevel);
-        tower.FloorCount = Mathf.FloorToInt(floorsPerLevel.Evaluate(SaveData.CurrentLevel));
-        tower.SpecialTileChance = specialTileChancePerLevel.Evaluate(SaveData.CurrentLevel);
-        tower.OnTileDestroyedCallback += OnTileDestroyed;
-        tower.BuildTower();
+        playerProgress = PlayerStats.Instance.playerProgress;
+        playerUISettings = PlayerStats.Instance.playerUISettings;
+        TileColorManager.Instance.SetColorList(playerUISettings.CurrentColorList);
+        TileColorManager.Instance.SetMaxColors(Mathf.FloorToInt(colorCountPerLevel.Evaluate(playerProgress.CurrentLevel)), true);
+        SetupTower();
 
+        minPercent = percentRequiredPerLevel.Evaluate(playerProgress.CurrentLevel);
         tileCount = tower.FloorCount * tower.TileCountPerFloor;
-        ballCount = Mathf.FloorToInt(ballToTileRatioPerLevel.Evaluate(SaveData.CurrentLevel) * tileCount);
+        ballCount = Mathf.FloorToInt(ballToTileRatioPerLevel.Evaluate(playerProgress.CurrentLevel) * tileCount);
         ballCountText.text = ballCount.ToString("N0");
         ballShooter.OnBallShot += OnBallShot;
 
+        SetPercentCounterValues();
+    }
+
+    private void SetupTower()
+    {
+        tower.FloorCount = Mathf.FloorToInt(floorsPerLevel.Evaluate(playerProgress.CurrentLevel));
+        tower.SpecialTileChance = specialTileChancePerLevel.Evaluate(playerProgress.CurrentLevel);
+        tower.OnTileDestroyedCallback += OnTileDestroyed;
+        tower.BuildTower();
+    }
+
+    private void SetPercentCounterValues()
+    {
         percentCounter.SetColor(TileColorManager.Instance.GetColor(Mathf.FloorToInt(Random.value * TileColorManager.Instance.ColorCount)));
-        percentCounter.SetLevel(SaveData.CurrentLevel);
-        percentCounter.SetValue(SaveData.PreviousHighscore);
-        percentCounter.SetShadowValue(SaveData.PreviousHighscore);
+        percentCounter.SetLevel(playerProgress.CurrentLevel);
+        percentCounter.SetValue(playerProgress.PreviousHighScore);
+        percentCounter.SetShadowValue(playerProgress.PreviousHighScore);
         percentCounter.SetValueSmooth(0f);
     }
 
@@ -89,9 +107,20 @@ public class GameManager : Singleton<GameManager>
         if (ballCount == 1) {
             oneBallRemaining.Play();
         }
-        else if (ballCount == 0) {
-            SaveData.PreviousHighscore = Mathf.Max(SaveData.PreviousHighscore, ((float)destroyedTileCount / tileCount) / minPercent);
+        else if (ballCount == 0)
+        {
+            CountScore();
             SetGameState(GameState.WaitingLose);
+        }
+    }
+
+    private void CountScore()
+    {
+        var highScore = ((float)destroyedTileCount / tileCount) / minPercent;
+        if (highScore > playerProgress.PreviousHighScore)
+        {
+            playerProgress.PreviousHighScore = highScore;
+            PlayerStats.Instance.SaveProgress();
         }
     }
 
@@ -111,10 +140,11 @@ public class GameManager : Singleton<GameManager>
             if (p >= minPercent) {
                 CameraShakeManager.Instance.StopAll(true);
                 CameraShakeManager.Instance.enabled = false;
-                SaveData.CurrentLevel++;
-                SaveData.PreviousHighscore = 0;
+                playerProgress.CurrentLevel++;
+                playerProgress.PreviousHighScore = 0;
+                PlayerStats.Instance.SaveProgress();
                 SetGameState(GameState.Win);
-                if (SaveData.VibrationEnabled == 1)
+                if (playerUISettings.VibrationEnabled)
                     Handheld.Vibrate();
             }
         }

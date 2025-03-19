@@ -1,13 +1,14 @@
 ﻿using System.IO;
-using JetBrains.Annotations;
+using _3_Scripts.Data.Structure;
 using UnityEngine;
 
-namespace _3_Scripts.Data
+namespace _3_Scripts.Data.Services
 {
-    public abstract class AbstractSavedProgress<T> : ISaveSystem<T> where T : SavedProgress
+    public abstract class AbstractSavedProgress<T> : ISaveSystem<T> where T : ISavedProgress
     {
+        private ISaveSystem<T> m_saveSystemImplementation;
         protected abstract string FilePath { get; }
-        
+
         public void Save(T progress)
         {
             var json = JsonUtility.ToJson(progress, true);
@@ -22,7 +23,7 @@ namespace _3_Scripts.Data
                 Debug.Log("No save file found.");
                 return CreateNewSave();
             }
-            
+
             var json = File.ReadAllText(FilePath);
             Debug.Log(json);
             return JsonUtility.FromJson<T>(json);
@@ -33,16 +34,16 @@ namespace _3_Scripts.Data
             return File.Exists(FilePath);
         }
 
-        public bool Reset()
+        public T Reset()
         {
+            if (!SaveExists())
             {
-                if (!SaveExists())
-                {
-                    return false;
-                }
                 File.Delete(FilePath);
-                return true;
             }
+            
+            var data = CreateNewSave();
+            Save(data);
+            return data;
         }
 
         protected abstract T CreateNewSave();
