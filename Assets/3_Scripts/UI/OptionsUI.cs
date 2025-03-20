@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using _3_Scripts.Data;
 using _3_Scripts.Data.Structure;
+using _3_Scripts.Utils;
 using UnityEngine;
 
 public class OptionsUI : MonoBehaviour
@@ -16,15 +17,22 @@ public class OptionsUI : MonoBehaviour
     bool isOpen;
 
     private PlayerUISettings playerUISettings;
+    private PlayerData playerData;
     void Awake()
     {
         animator = GetComponent<Animator>();
         animator.speed = 1.0f / Time.timeScale;
         isOpen = false;
         animator.SetBool("isOpen", isOpen);
-        playerUISettings = PlayerStats.Instance.playerUISettings;
+        InitializePlayerData();
         colorblindToggle.SetEnabled(playerUISettings.CurrentColorList == 1);
         vibrationToggle.SetEnabled(playerUISettings.VibrationEnabled);
+    }
+
+    private void InitializePlayerData()
+    {
+        playerData = ServiceLocator.GetPlayerData();
+        playerUISettings = playerData.playerUISettings;
     }
 
     public void Toggle()
@@ -52,6 +60,6 @@ public class OptionsUI : MonoBehaviour
 
     private void OnDisable()
     {
-       PlayerStats.Instance.saveUISettings();
+       playerData.saveUISettings();
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using _3_Scripts.Data;
 using _3_Scripts.Data.Structure;
+using _3_Scripts.Utils;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -55,6 +56,7 @@ public class GameManager : Singleton<GameManager>
 
     private PlayerProgress playerProgress;
     private PlayerUISettings playerUISettings;
+    private PlayerData m_playerData;
 
     private void Awake()
     {
@@ -63,13 +65,11 @@ public class GameManager : Singleton<GameManager>
         animator.speed = 1.0f / Time.timeScale;
         FxPool.Instance.EnsureQuantity(tileExplosionFx, 3);
         FxPool.Instance.EnsureQuantity(tileDestroyFx, 30);
-        PlayerStats.Instance.LoadAll();
     }
 
     private void Start()
     {
-        playerProgress = PlayerStats.Instance.playerProgress;
-        playerUISettings = PlayerStats.Instance.playerUISettings;
+        InitPlayerData();
         TileColorManager.Instance.SetColorList(playerUISettings.CurrentColorList);
         TileColorManager.Instance.SetMaxColors(Mathf.FloorToInt(colorCountPerLevel.Evaluate(playerProgress.CurrentLevel)), true);
         SetupTower();
@@ -81,6 +81,13 @@ public class GameManager : Singleton<GameManager>
         ballShooter.OnBallShot += OnBallShot;
 
         SetPercentCounterValues();
+    }
+
+    private void InitPlayerData()
+    {
+        m_playerData = ServiceLocator.GetPlayerData();
+        playerProgress = m_playerData.playerProgress;
+        playerUISettings = m_playerData.playerUISettings;
     }
 
     private void SetupTower()
@@ -120,7 +127,7 @@ public class GameManager : Singleton<GameManager>
         if (highScore > playerProgress.PreviousHighScore)
         {
             playerProgress.PreviousHighScore = highScore;
-            PlayerStats.Instance.SaveProgress();
+            m_playerData.SaveProgress();
         }
     }
 
@@ -142,7 +149,7 @@ public class GameManager : Singleton<GameManager>
                 CameraShakeManager.Instance.enabled = false;
                 playerProgress.CurrentLevel++;
                 playerProgress.PreviousHighScore = 0;
-                PlayerStats.Instance.SaveProgress();
+                m_playerData.SaveProgress();
                 SetGameState(GameState.Win);
                 if (playerUISettings.VibrationEnabled)
                     Handheld.Vibrate();

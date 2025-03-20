@@ -2,15 +2,15 @@
 
 namespace _3_Scripts.Data
 {
-    public class PlayerStats : Singleton<PlayerStats>
+    public class PlayerData
     {
         public PlayerProgress playerProgress;
         public PlayerUISettings playerUISettings;
-        private SaveManager saveManager;
+        private readonly SaveManager saveManager;
 
-        private void Awake()
+        public PlayerData(SaveManager saveManager)
         {
-            saveManager = new SaveManager();
+            this.saveManager = saveManager;
         }
 
         public void SaveAll()
