@@ -40,7 +40,7 @@ namespace _3_Scripts.Data
            return saveProgressSystem.Reset();
         } 
 
-        public PlayerUISettings ResetSettings()
+        public PlayerUISettings ResetUISettings()
         {
            return saveSettingsSystem.Reset();
         }

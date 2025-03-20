@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using _3_Scripts.Data;
+﻿using _3_Scripts.Data;
 using _3_Scripts.Data.Structure;
 using _3_Scripts.Utils;
 using UnityEngine;
@@ -46,6 +43,7 @@ public class OptionsUI : MonoBehaviour
         if (playerUISettings.CurrentColorList == 1 != value) {
             playerUISettings.CurrentColorList = value ? 1 : 0;
             TileColorManager.Instance.SetColorList(playerUISettings.CurrentColorList);
+            playerData.saveUISettings();
         }
     }
 
@@ -53,13 +51,9 @@ public class OptionsUI : MonoBehaviour
     {
         if (playerUISettings.VibrationEnabled != value) {
             playerUISettings.VibrationEnabled = value;
+            playerData.saveUISettings();
             if (value)
                 Handheld.Vibrate();
         }
-    }
-
-    private void OnDisable()
-    {
-       playerData.saveUISettings();
     }
 }

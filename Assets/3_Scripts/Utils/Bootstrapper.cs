@@ -20,8 +20,11 @@ namespace _3_Scripts.Utils
 
             SaveManager saveManager = new SaveManager(saveProgressSystem, saveSettingsSystem);
 
-            PlayerData playerData = new PlayerData(saveManager);
-            playerData.LoadAll();
+            PlayerProgress progress = saveProgressSystem.Load();
+            PlayerUISettings uiSettings = saveSettingsSystem.Load();
+
+            
+            PlayerData playerData = new PlayerData(saveManager, progress, uiSettings);
 
             ServiceLocator.RegisterPlayerData(playerData);
         }

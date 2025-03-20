@@ -1,16 +1,21 @@
-﻿using _3_Scripts.Data.Structure;
+﻿using System;
+using _3_Scripts.Data.Structure;
 
 namespace _3_Scripts.Data
 {
     public class PlayerData
     {
-        public PlayerProgress playerProgress;
-        public PlayerUISettings playerUISettings;
+        public readonly PlayerProgress playerProgress;
+        public readonly PlayerUISettings playerUISettings;
+        public Action onProgressUpdate;
+        public Action onSettingsUpdate;
         private readonly SaveManager saveManager;
 
-        public PlayerData(SaveManager saveManager)
+        public PlayerData(SaveManager saveManager, PlayerProgress playerProgress, PlayerUISettings playerUISettings)
         {
             this.saveManager = saveManager;
+            this.playerProgress = playerProgress;
+            this.playerUISettings = playerUISettings;
         }
 
         public void SaveAll()
@@ -33,33 +38,60 @@ namespace _3_Scripts.Data
 
         public void LoadProgress()
         {
-            playerProgress = saveManager.LoadProgress();
+            UpdateCurrentProgress(saveManager.LoadProgress());
+            onProgressUpdate?.Invoke();
         }
 
         public void SaveProgress()
         {
             saveManager.SaveProgress(playerProgress);
+            onProgressUpdate?.Invoke();
         }
 
         public void ResetProgress()
         {
-            playerProgress = saveManager.ResetProgress();
+            UpdateCurrentProgress(saveManager.ResetProgress());
+            onProgressUpdate?.Invoke();
         }
 
         public void LoadUISettings()
         {
-            playerUISettings = saveManager.LoadSettings();
+            UpdateCurrentSettings(saveManager.LoadSettings());
+            onSettingsUpdate?.Invoke();
         }
 
         public void saveUISettings()
         {
             saveManager.SaveSettings(playerUISettings);
+            onSettingsUpdate?.Invoke();
         }
 
         public void ResetUISettings()
         {
-            playerUISettings = saveManager.ResetSettings();
+            UpdateCurrentSettings(saveManager.ResetUISettings());
+            onSettingsUpdate?.Invoke();
         }
-        
+
+        private void UpdateCurrentSettings(PlayerUISettings saved)
+        {
+            if (saved == null)
+            {
+                return;
+            }
+
+            playerUISettings.CurrentColorList = saved.CurrentColorList;
+            playerUISettings.VibrationEnabled = saved.VibrationEnabled;
+        }
+
+        private void UpdateCurrentProgress(PlayerProgress savedProgress)
+        {
+            if (savedProgress == null)
+            {
+                return;
+            }
+
+            playerProgress.CurrentLevel = savedProgress.CurrentLevel;
+            playerProgress.PreviousHighScore = savedProgress.PreviousHighScore;
+        }
     }
 }
