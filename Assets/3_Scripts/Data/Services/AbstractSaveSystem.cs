@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace _3_Scripts.Data.Services
 {
-    public abstract class AbstractSavedProgress<T> : ISaveSystem<T> where T : ISavedProgress
+    public abstract class AbstractSaveSystem<T> : ISaveSystem<T> where T : ISavedProgress
     {
         private ISaveSystem<T> m_saveSystemImplementation;
         protected abstract string FilePath { get; }

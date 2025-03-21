@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace _3_Scripts.Data.Services
 {
-    public class SaveSettingsSystem : AbstractSavedProgress<PlayerUISettings>
+    public class SaveSettingsSystem : AbstractSaveSystem<PlayerUISettings>
     {
         protected override string FilePath => Application.persistentDataPath + "/settings.json";
 

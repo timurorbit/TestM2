@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace _3_Scripts.Data.Services
 {
-    public class SaveProgressSystem : AbstractSavedProgress<PlayerProgress>
+    public class SaveProgressSystem : AbstractSaveSystem<PlayerProgress>
     {
         protected override string FilePath => Application.persistentDataPath + "/progress.json";
 
