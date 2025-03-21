@@ -1,5 +1,5 @@
 using _3_Scripts.Data;
-using _3_Scripts.Utils;
+using _3_Scripts.Infrastructure;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -57,9 +57,9 @@ public class DebugPlayerDataUI : MonoBehaviour
         playerData.onSettingsUpdate -= UpdateSettingsDebugUI;
     }
 
-    public void ResetPlayerData()
+    public async void ResetPlayerData()
     {
-        Debug.Log("Reset Player Data");
-        playerData.ResetAll();
+        await playerData.ResetAll();
+        Debug.Log("Game data reset successfully");
     }
 }

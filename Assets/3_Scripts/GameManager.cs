@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using _3_Scripts.Data;
 using _3_Scripts.Data.Structure;
-using _3_Scripts.Utils;
+using _3_Scripts.Infrastructure;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -149,7 +149,7 @@ public class GameManager : Singleton<GameManager>
                 CameraShakeManager.Instance.enabled = false;
                 playerProgress.CurrentLevel++;
                 playerProgress.PreviousHighScore = 0;
-                m_playerData.SaveProgress();
+                _ = m_playerData.SaveProgress();
                 SetGameState(GameState.Win);
                 if (playerUISettings.VibrationEnabled)
                     Handheld.Vibrate();

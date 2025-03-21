@@ -1,6 +1,7 @@
-﻿using _3_Scripts.Data;
+﻿using System;
+using _3_Scripts.Data;
 using _3_Scripts.Data.Structure;
-using _3_Scripts.Utils;
+using _3_Scripts.Infrastructure;
 using UnityEngine;
 
 public class OptionsUI : MonoBehaviour
@@ -20,8 +21,12 @@ public class OptionsUI : MonoBehaviour
         animator = GetComponent<Animator>();
         animator.speed = 1.0f / Time.timeScale;
         isOpen = false;
-        animator.SetBool("isOpen", isOpen);
+    }
+
+    private void Start()
+    {
         InitializePlayerData();
+        animator.SetBool("isOpen", isOpen);
         colorblindToggle.SetEnabled(playerUISettings.CurrentColorList == 1);
         vibrationToggle.SetEnabled(playerUISettings.VibrationEnabled);
     }
@@ -43,7 +48,7 @@ public class OptionsUI : MonoBehaviour
         if (playerUISettings.CurrentColorList == 1 != value) {
             playerUISettings.CurrentColorList = value ? 1 : 0;
             TileColorManager.Instance.SetColorList(playerUISettings.CurrentColorList);
-            playerData.saveUISettings();
+            _ = playerData.SaveUISettings();
         }
     }
 
@@ -51,7 +56,7 @@ public class OptionsUI : MonoBehaviour
     {
         if (playerUISettings.VibrationEnabled != value) {
             playerUISettings.VibrationEnabled = value;
-            playerData.saveUISettings();
+            _ = playerData.SaveUISettings();
             if (value)
                 Handheld.Vibrate();
         }

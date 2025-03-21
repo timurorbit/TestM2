@@ -1,15 +1,17 @@
 ﻿using System;
+using System.Threading.Tasks;
 using _3_Scripts.Data.Structure;
 
 namespace _3_Scripts.Data
 {
     public class PlayerData
     {
+        private readonly SaveManager saveManager;
         public readonly PlayerProgress playerProgress;
         public readonly PlayerUISettings playerUISettings;
+
         public Action onProgressUpdate;
         public Action onSettingsUpdate;
-        private readonly SaveManager saveManager;
 
         public PlayerData(SaveManager saveManager, PlayerProgress playerProgress, PlayerUISettings playerUISettings)
         {
@@ -18,57 +20,56 @@ namespace _3_Scripts.Data
             this.playerUISettings = playerUISettings;
         }
 
-        public void SaveAll()
+        public async Task SaveAll()
         {
-            SaveProgress();
-            saveUISettings();
+            await Task.WhenAll(SaveProgress(), SaveUISettings());
         }
 
-        public void LoadAll()
+        public async Task LoadAll()
         {
-            LoadProgress();
-            LoadUISettings();
+            var progress = LoadProgress();
+            var settings = LoadUISettings();
+            await Task.WhenAll(progress, settings);
         }
 
-        public void ResetAll()
+        public async Task ResetAll()
         {
-            ResetProgress();
-            ResetUISettings();
+            await Task.WhenAll(ResetProgress(), ResetUISettings());
         }
 
-        public void LoadProgress()
+        public async Task SaveUISettings()
         {
-            UpdateCurrentProgress(saveManager.LoadProgress());
-            onProgressUpdate?.Invoke();
-        }
-
-        public void SaveProgress()
-        {
-            saveManager.SaveProgress(playerProgress);
-            onProgressUpdate?.Invoke();
-        }
-
-        public void ResetProgress()
-        {
-            UpdateCurrentProgress(saveManager.ResetProgress());
-            onProgressUpdate?.Invoke();
-        }
-
-        public void LoadUISettings()
-        {
-            UpdateCurrentSettings(saveManager.LoadSettings());
+            await saveManager.SaveSettings(playerUISettings);
             onSettingsUpdate?.Invoke();
         }
 
-        public void saveUISettings()
+        public async Task LoadProgress()
         {
-            saveManager.SaveSettings(playerUISettings);
+            UpdateCurrentProgress(await saveManager.LoadProgress());
+            onProgressUpdate?.Invoke();
+        }
+
+        public async Task LoadUISettings()
+        {
+            UpdateCurrentSettings(await saveManager.LoadSettings());
             onSettingsUpdate?.Invoke();
         }
 
-        public void ResetUISettings()
+        public async Task SaveProgress()
         {
-            UpdateCurrentSettings(saveManager.ResetUISettings());
+            await saveManager.SaveProgress(playerProgress);
+            onProgressUpdate?.Invoke();
+        }
+
+        public async Task ResetProgress()
+        {
+            UpdateCurrentProgress(await saveManager.ResetProgress());
+            onProgressUpdate?.Invoke();
+        }
+
+        public async Task ResetUISettings()
+        {
+            UpdateCurrentSettings(await saveManager.ResetUISettings());
             onSettingsUpdate?.Invoke();
         }
 

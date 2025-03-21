@@ -1,4 +1,5 @@
-﻿using _3_Scripts.Data.Services;
+﻿using System.Threading.Tasks;
+using _3_Scripts.Data.Services;
 using _3_Scripts.Data.Structure;
 
 namespace _3_Scripts.Data
@@ -15,34 +16,34 @@ namespace _3_Scripts.Data
             this.saveSettingsSystem = saveSettingsSystem;
         }
 
-        public void SaveSettings(PlayerUISettings settings)
+        public async Task SaveSettings(PlayerUISettings settings)
         {
-           saveSettingsSystem.Save(settings); 
+           await saveSettingsSystem.Save(settings); 
         }
 
-        public void SaveProgress(PlayerProgress progress)
+        public async Task SaveProgress(PlayerProgress progress)
         {
-            saveProgressSystem.Save(progress);
+           await saveProgressSystem.Save(progress);
         }
 
-        public PlayerProgress LoadProgress()
+        public async Task<PlayerProgress> LoadProgress()
         {
-            return saveProgressSystem.Load();
+            return await saveProgressSystem.Load();
         }
 
-        public PlayerUISettings LoadSettings()
+        public async Task<PlayerUISettings> LoadSettings()
         {
-            return saveSettingsSystem.Load();
+            return await saveSettingsSystem.Load();
         }
 
-        public PlayerProgress ResetProgress()
+        public async Task<PlayerProgress> ResetProgress()
         {
-           return saveProgressSystem.Reset();
+           return await saveProgressSystem.Reset();
         } 
 
-        public PlayerUISettings ResetUISettings()
+        public async Task<PlayerUISettings> ResetUISettings()
         {
-           return saveSettingsSystem.Reset();
+           return await saveSettingsSystem.Reset();
         }
     }
 }

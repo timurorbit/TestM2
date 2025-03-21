@@ -1,6 +1,6 @@
 ﻿using _3_Scripts.Data;
 
-namespace _3_Scripts.Utils
+namespace _3_Scripts.Infrastructure
 {
     public static class ServiceLocator
     {

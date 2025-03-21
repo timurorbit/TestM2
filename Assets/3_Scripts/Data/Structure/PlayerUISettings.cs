@@ -13,5 +13,9 @@ namespace _3_Scripts.Data.Structure
             CurrentColorList = currentColorList;
             VibrationEnabled = vibrationEnabled;
         }
+
+        public PlayerUISettings()
+        {
+        }
     }
 }

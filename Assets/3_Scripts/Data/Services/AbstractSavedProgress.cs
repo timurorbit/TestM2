@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using _3_Scripts.Data.Structure;
 using UnityEngine;
 
@@ -10,12 +11,12 @@ namespace _3_Scripts.Data.Services
         private ISaveSystem<T> m_saveSystemImplementation;
         protected abstract string FilePath { get; }
 
-        public void Save(T progress)
+        public async Task Save(T progress)
         {
             try
             {
                 var json = JsonUtility.ToJson(progress, true);
-                File.WriteAllText(FilePath, json);
+                await File.WriteAllTextAsync(FilePath, json);
             }
             catch (IOException e)
             {
@@ -23,7 +24,7 @@ namespace _3_Scripts.Data.Services
             }
         }
 
-        public T Load()
+        public async Task<T> Load()
         {
             if (!SaveExists())
             {
@@ -32,7 +33,7 @@ namespace _3_Scripts.Data.Services
 
             try
             {
-                var json = File.ReadAllText(FilePath);
+                var json = await File.ReadAllTextAsync(FilePath);
                 return JsonUtility.FromJson<T>(json);
             }
             catch (Exception e)
@@ -47,7 +48,7 @@ namespace _3_Scripts.Data.Services
             return File.Exists(FilePath);
         }
 
-        public T Reset()
+        public async Task<T> Reset()
         {
             try
             {
@@ -57,7 +58,7 @@ namespace _3_Scripts.Data.Services
                 }
 
                 var data = CreateNewSave();
-                Save(data);
+                await Save(data);
                 return data;
             }
             catch (Exception e)
