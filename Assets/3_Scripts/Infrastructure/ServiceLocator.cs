@@ -1,19 +1,27 @@
-﻿using _3_Scripts.Data;
+﻿using System;
+using System.Collections.Generic;
 
 namespace _3_Scripts.Infrastructure
 {
-    public static class ServiceLocator
+    public class ServiceLocator
     {
-        private static PlayerData _playerData;
-    
-        public static void RegisterPlayerData(PlayerData data)
+        private readonly Dictionary<Type, object> _services = new();
+
+        public void RegisterService<T>(T service)
         {
-            _playerData = data;
+            _services[typeof(T)] = service;
         }
 
-        public static PlayerData GetPlayerData()
+        public T GetService<T>()
         {
-            return _playerData;
+            if (_services.TryGetValue(typeof(T), out var service))
+            {
+                return (T)service;
+            }
+            throw new Exception($"Service of type {typeof(T).Name} not registered.");
         }
+        
+        private static readonly Lazy<ServiceLocator> _instance = new(() => new ServiceLocator());
+        public static ServiceLocator Instance => _instance.Value;
     }
 }

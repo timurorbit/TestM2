@@ -10,8 +10,6 @@ namespace _3_Scripts.Data.Services
         Task<T> Load();
         
         bool SaveExists();
-
-        Task<T> Reset();
         
     }
 }

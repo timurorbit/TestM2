@@ -1,98 +1,73 @@
 ﻿using System;
-using System.Threading.Tasks;
 using _3_Scripts.Data.Structure;
 
 namespace _3_Scripts.Data
 {
-    public class PlayerData
+    [Serializable]
+    public class PlayerData : ISavedProgress
     {
-        private readonly SaveManager saveManager;
-        public readonly PlayerProgress playerProgress;
-        public readonly PlayerUISettings playerUISettings;
+        public int _currentLevel;
+        
+        public float _previousHighScore;
+        
+        public int _currentColorList;
+        
+        public bool _vibrationEnabled;
 
-        public Action onProgressUpdate;
-        public Action onSettingsUpdate;
+        public event Action DataChanged;
 
-        public PlayerData(SaveManager saveManager, PlayerProgress playerProgress, PlayerUISettings playerUISettings)
+        private void InvokeChange() => DataChanged?.Invoke();
+
+        public void ResetToDefaults()
         {
-            this.saveManager = saveManager;
-            this.playerProgress = playerProgress;
-            this.playerUISettings = playerUISettings;
+            _currentLevel = 0;
+            _previousHighScore = 0;
+            _currentColorList = 0;
+            _vibrationEnabled = true;
+            InvokeChange();
         }
 
-        public async Task SaveAll()
+        public int CurrentLevel
         {
-            await Task.WhenAll(SaveProgress(), SaveUISettings());
-        }
-
-        public async Task LoadAll()
-        {
-            var progress = LoadProgress();
-            var settings = LoadUISettings();
-            await Task.WhenAll(progress, settings);
-        }
-
-        public async Task ResetAll()
-        {
-            await Task.WhenAll(ResetProgress(), ResetUISettings());
-        }
-
-        public async Task SaveUISettings()
-        {
-            await saveManager.SaveSettings(playerUISettings);
-            onSettingsUpdate?.Invoke();
-        }
-
-        public async Task LoadProgress()
-        {
-            UpdateCurrentProgress(await saveManager.LoadProgress());
-            onProgressUpdate?.Invoke();
-        }
-
-        public async Task LoadUISettings()
-        {
-            UpdateCurrentSettings(await saveManager.LoadSettings());
-            onSettingsUpdate?.Invoke();
-        }
-
-        public async Task SaveProgress()
-        {
-            await saveManager.SaveProgress(playerProgress);
-            onProgressUpdate?.Invoke();
-        }
-
-        public async Task ResetProgress()
-        {
-            UpdateCurrentProgress(await saveManager.ResetProgress());
-            onProgressUpdate?.Invoke();
-        }
-
-        public async Task ResetUISettings()
-        {
-            UpdateCurrentSettings(await saveManager.ResetUISettings());
-            onSettingsUpdate?.Invoke();
-        }
-
-        private void UpdateCurrentSettings(PlayerUISettings saved)
-        {
-            if (saved == null)
+            get => _currentLevel;
+            set
             {
-                return;
-            }
+                _currentLevel = value;
 
-            playerUISettings.CurrentColorList = saved.CurrentColorList;
-            playerUISettings.VibrationEnabled = saved.VibrationEnabled;
+                InvokeChange();
+            }
         }
 
-        private void UpdateCurrentProgress(PlayerProgress savedProgress)
+        public float PreviousHighScore
         {
-            if (savedProgress == null)
+            get => _previousHighScore;
+            set
             {
-                return;
-            }
+                _previousHighScore = value;
 
-            playerProgress.CurrentLevel = savedProgress.CurrentLevel;
-            playerProgress.PreviousHighScore = savedProgress.PreviousHighScore;
+                InvokeChange();
+            }
+        }
+
+        public int CurrentColorList
+        {
+            get => _currentColorList;
+            set
+            {
+                _currentColorList = value;
+                InvokeChange();
+            }
+        }
+
+        public bool VibrationEnabled
+        {
+            get => _vibrationEnabled;
+            set
+            {
+                _vibrationEnabled = value;
+
+                InvokeChange();
+            }
         }
     }
 }

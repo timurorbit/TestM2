@@ -13,8 +13,7 @@ public class OptionsUI : MonoBehaviour
 
     Animator animator;
     bool isOpen;
-
-    private PlayerUISettings playerUISettings;
+    
     private PlayerData playerData;
     void Awake()
     {
@@ -27,14 +26,13 @@ public class OptionsUI : MonoBehaviour
     {
         InitializePlayerData();
         animator.SetBool("isOpen", isOpen);
-        colorblindToggle.SetEnabled(playerUISettings.CurrentColorList == 1);
-        vibrationToggle.SetEnabled(playerUISettings.VibrationEnabled);
+        colorblindToggle.SetEnabled(playerData.CurrentColorList == 1);
+        vibrationToggle.SetEnabled(playerData.VibrationEnabled);
     }
 
     private void InitializePlayerData()
     {
-        playerData = ServiceLocator.GetPlayerData();
-        playerUISettings = playerData.playerUISettings;
+        playerData = ServiceLocator.Instance.GetService<PlayerData>();
     }
 
     public void Toggle()
@@ -45,18 +43,16 @@ public class OptionsUI : MonoBehaviour
 
     public void OnColorblindClick(bool value)
     {
-        if (playerUISettings.CurrentColorList == 1 != value) {
-            playerUISettings.CurrentColorList = value ? 1 : 0;
-            TileColorManager.Instance.SetColorList(playerUISettings.CurrentColorList);
-            _ = playerData.SaveUISettings();
+        if (playerData.CurrentColorList == 1 != value) {
+            playerData.CurrentColorList = value ? 1 : 0;
+            TileColorManager.Instance.SetColorList(playerData.CurrentColorList);
         }
     }
 
     public void OnVibrationClick(bool value)
     {
-        if (playerUISettings.VibrationEnabled != value) {
-            playerUISettings.VibrationEnabled = value;
-            _ = playerData.SaveUISettings();
+        if (playerData.VibrationEnabled != value) {
+            playerData.VibrationEnabled = value;
             if (value)
                 Handheld.Vibrate();
         }

@@ -1,49 +1,36 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using _3_Scripts.Data.Services;
-using _3_Scripts.Data.Structure;
 
 namespace _3_Scripts.Data
 {
-    public class SaveManager
+    public class SaveManager : IDisposable
     {
         
-        private readonly ISaveSystem<PlayerProgress> saveProgressSystem;
-        private readonly ISaveSystem<PlayerUISettings> saveSettingsSystem;
+        private readonly ISaveSystem<PlayerData> _savePlayerDataSystem;
+        private readonly PlayerData _playerData;
 
-        public SaveManager(ISaveSystem<PlayerProgress> saveProgressSystem, ISaveSystem<PlayerUISettings> saveSettingsSystem)
+        public SaveManager(ISaveSystem<PlayerData> saveProgressSystem, PlayerData playerData)
         {
-            this.saveProgressSystem = saveProgressSystem;
-            this.saveSettingsSystem = saveSettingsSystem;
+            _savePlayerDataSystem = saveProgressSystem;
+            _playerData = playerData;
+            _playerData.DataChanged += savePlayerData;
         }
 
-        public async Task SaveSettings(PlayerUISettings settings)
+        private void savePlayerData()
         {
-           await saveSettingsSystem.Save(settings); 
+            _savePlayerDataSystem.Save(_playerData);
         }
 
-        public async Task SaveProgress(PlayerProgress progress)
+        public void Dispose()
         {
-           await saveProgressSystem.Save(progress);
+            _playerData.DataChanged -= savePlayerData;
         }
 
-        public async Task<PlayerProgress> LoadProgress()
+        public Task ResetPlayerData()
         {
-            return await saveProgressSystem.Load();
-        }
-
-        public async Task<PlayerUISettings> LoadSettings()
-        {
-            return await saveSettingsSystem.Load();
-        }
-
-        public async Task<PlayerProgress> ResetProgress()
-        {
-           return await saveProgressSystem.Reset();
-        } 
-
-        public async Task<PlayerUISettings> ResetUISettings()
-        {
-           return await saveSettingsSystem.Reset();
+            _playerData.ResetToDefaults();
+            return _savePlayerDataSystem.Save(_playerData);
         }
     }
 }

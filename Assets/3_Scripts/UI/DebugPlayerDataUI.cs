@@ -1,10 +1,11 @@
+using System;
 using _3_Scripts.Data;
 using _3_Scripts.Infrastructure;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class DebugPlayerDataUI : MonoBehaviour
+public class DebugPlayerDataUI : MonoBehaviour, IDisposable
 {
     [SerializeField] private TextMeshProUGUI CurrentLevelText;
     [SerializeField] private TextMeshProUGUI PreviousHighScoreText;
@@ -12,13 +13,14 @@ public class DebugPlayerDataUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI vibrationEnabledText;
     
     private PlayerData playerData;
+    public SaveManager saveManager;
 
     private void Start()
     {
-        playerData = ServiceLocator.GetPlayerData();
-        playerData.onProgressUpdate += UpdateProgressDebugUI;
-        playerData.onSettingsUpdate += UpdateSettingsDebugUI;
+        playerData = ServiceLocator.Instance.GetService<PlayerData>();
+        saveManager = ServiceLocator.Instance.GetService<SaveManager>();
         UpdateUI();
+        playerData.DataChanged += UpdateUI;
     }
 
     private void UpdateUI()
@@ -33,8 +35,8 @@ public class DebugPlayerDataUI : MonoBehaviour
         {
             return;
         }
-        CurrentLevelText.text = $"CurrentLevel: {playerData.playerProgress.CurrentLevel}";
-        PreviousHighScoreText.text = $"HighScore: {playerData.playerProgress.PreviousHighScore}";
+        CurrentLevelText.text = $"CurrentLevel: {playerData.CurrentLevel}";
+        PreviousHighScoreText.text = $"HighScore: {playerData.PreviousHighScore}";
     }
 
     private void UpdateSettingsDebugUI()
@@ -43,23 +45,18 @@ public class DebugPlayerDataUI : MonoBehaviour
         {
             return;
         }
-        CurrentColorListText.text = $"Color List: {playerData.playerUISettings.CurrentColorList}";
-        vibrationEnabledText.text = $"Vibration Enabled: {playerData.playerUISettings.VibrationEnabled}";
-    }
-
-    private void OnDisable()
-    {
-        if (playerData == null)
-        {
-            return;
-        }
-        playerData.onProgressUpdate -= UpdateProgressDebugUI;
-        playerData.onSettingsUpdate -= UpdateSettingsDebugUI;
+        CurrentColorListText.text = $"Color List: {playerData.CurrentColorList}";
+        vibrationEnabledText.text = $"Vibration Enabled: {playerData.VibrationEnabled}";
     }
 
     public async void ResetPlayerData()
     {
-        await playerData.ResetAll();
+        await saveManager.ResetPlayerData();
         Debug.Log("Game data reset successfully");
+    }
+
+    public void Dispose()
+    {
+        playerData.DataChanged -= UpdateUI;
     }
 }

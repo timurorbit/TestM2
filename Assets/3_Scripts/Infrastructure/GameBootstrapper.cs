@@ -1,8 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using _3_Scripts.Data;
 using _3_Scripts.Data.Services;
-using _3_Scripts.Data.Structure;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -12,38 +10,28 @@ namespace _3_Scripts.Infrastructure
     {
         private const string Bootstrap = "Bootstrap";
         private const string GameLevel = "GameScene";
+
         private async void Awake()
         {
-            try
-            { 
-                DontDestroyOnLoad(this);
-                if (SceneManager.GetActiveScene().name != Bootstrap)
-                {
-                    SceneManager.LoadScene(Bootstrap); 
-                }
-                await InitializeGame();
-                SceneManager.LoadScene(GameLevel);
-            }
-            catch (Exception e)
+            DontDestroyOnLoad(this);
+            if (SceneManager.GetActiveScene().name != Bootstrap)
             {
-                Console.WriteLine(e);
+                SceneManager.LoadScene(Bootstrap);
             }
+
+            await InitializeGame();
+            SceneManager.LoadScene(GameLevel);
         }
 
         private async Task InitializeGame()
         {
-            ISaveSystem<PlayerProgress> saveProgressSystem = new SaveProgressSystem();
-            ISaveSystem<PlayerUISettings> saveSettingsSystem = new SaveSettingsSystem();
+            ISaveSystem<PlayerData> saveProgressSystem = new JsonSavePlayerDataSystem();
+            PlayerData playerData = await saveProgressSystem.Load();
 
-            SaveManager saveManager = new SaveManager(saveProgressSystem, saveSettingsSystem);
-
-            PlayerProgress progress = await saveProgressSystem.Load();
-            PlayerUISettings playerUISettings = await saveSettingsSystem.Load();
-
+            SaveManager saveManager = new SaveManager(saveProgressSystem, playerData);
             
-            PlayerData playerData = new PlayerData(saveManager, progress, playerUISettings);
-
-            ServiceLocator.RegisterPlayerData(playerData);
+            ServiceLocator.Instance.RegisterService(saveManager);
+            ServiceLocator.Instance.RegisterService(playerData);
         }
     }
 }
