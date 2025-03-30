@@ -52,7 +52,7 @@ public class DebugPlayerDataUI : MonoBehaviour, IDisposable
     public async void ResetPlayerData()
     {
         await saveManager.ResetPlayerData();
-        Debug.Log("Game data reset successfully");
+        Debug.Log("Game data reset completed");
     }
 
     public void Dispose()
