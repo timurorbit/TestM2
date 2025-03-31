@@ -27,10 +27,9 @@ namespace _3_Scripts.Data
             _playerData.DataChanged -= savePlayerData;
         }
 
-        public Task ResetPlayerData()
+        public void ResetPlayerData()
         {
             _playerData.ResetToDefaults();
-            return _savePlayerDataSystem.Save(_playerData);
         }
     }
 }

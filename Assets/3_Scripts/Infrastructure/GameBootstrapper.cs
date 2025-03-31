@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
 using _3_Scripts.Data;
 using _3_Scripts.Data.Services;
+using _3_Scripts.Infrastructure.Logging;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -25,7 +27,10 @@ namespace _3_Scripts.Infrastructure
 
         private async Task InitializeGame()
         {
-            ISaveSystem<PlayerData> saveProgressSystem = new JsonSavePlayerDataSystem();
+            ILogReporter logReporter = new ConditionalLogReporter();
+            ServiceLocator.Instance.RegisterService(logReporter);
+            
+            ISaveSystem<PlayerData> saveProgressSystem = new JsonSavePlayerDataSystem(200, logReporter);
             PlayerData playerData = await saveProgressSystem.Load();
 
             SaveManager saveManager = new SaveManager(saveProgressSystem, playerData);

@@ -13,7 +13,7 @@ public class DebugPlayerDataUI : MonoBehaviour, IDisposable
     [SerializeField] private TextMeshProUGUI vibrationEnabledText;
     
     private PlayerData playerData;
-    public SaveManager saveManager;
+    private SaveManager saveManager;
 
     private void Start()
     {
@@ -49,10 +49,9 @@ public class DebugPlayerDataUI : MonoBehaviour, IDisposable
         vibrationEnabledText.text = $"Vibration Enabled: {playerData.VibrationEnabled}";
     }
 
-    public async void ResetPlayerData()
+    public void ResetPlayerData()
     {
-        await saveManager.ResetPlayerData();
-        Debug.Log("Game data reset completed");
+        saveManager.ResetPlayerData();
     }
 
     public void Dispose()
