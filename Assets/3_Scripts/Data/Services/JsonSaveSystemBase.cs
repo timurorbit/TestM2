@@ -22,13 +22,15 @@ namespace _3_Scripts.Data.Services
         {
             if (saveDebounceDelay is < 100 or > 600)
             {
-                logReporter.ReportLog("Save debounce delay must be between 100 and 600ms. Setting default value is 100.");
+                logReporter.ReportLog(
+                    "Save debounce delay must be between 100 and 600ms. Setting default value is 100.");
                 _saveDebounceDelayMs = 100;
             }
             else
             {
-                _saveDebounceDelayMs = saveDebounceDelay; 
+                _saveDebounceDelayMs = saveDebounceDelay;
             }
+
             _logReporter = logReporter;
         }
 
@@ -45,6 +47,7 @@ namespace _3_Scripts.Data.Services
                         _logReporter.ReportError("Latest save is invalid or null.");
                         return GetBackupSave();
                     }
+
                     return saved;
                 }
                 else
@@ -53,9 +56,22 @@ namespace _3_Scripts.Data.Services
                     return CreateNewSave();
                 }
             }
+            catch (IOException e)
+            {
+                // Maybe Try again instead of GetBackupSave
+                _logReporter.ReportError($"Failed to read save file due to I/O error: {e.Message}");
+                return GetBackupSave();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                //TODO ask for permissions and retry
+                _logReporter.ReportError($"Permission denied accessing save file: {e.Message}");
+                return GetBackupSave();
+            }
             catch (Exception e)
             {
-                _logReporter.ReportError("Cant read saveFile. \n" + e.Message);
+                // Fallback for unhandled exceptions to review
+                _logReporter.ReportError($"Unexpected error loading save: {e.Message}");
                 return GetBackupSave();
             }
         }
@@ -67,10 +83,17 @@ namespace _3_Scripts.Data.Services
                 _logReporter.ReportError("The provided progress to save is invalid.");
                 return Task.CompletedTask;
             }
-            _saveDebounceToken?.Cancel();
+
+            // cancelling save operation in progress if exists
+            if (_saveDebounceToken != null)
+            {
+                _saveDebounceToken.Cancel();
+                _saveDebounceToken.Dispose();
+            }
+
+            // request new SaveOperation
             _saveDebounceToken = new CancellationTokenSource();
             var token = _saveDebounceToken.Token;
-
             return DebouncedSave(data, token);
         }
 
@@ -108,16 +131,66 @@ namespace _3_Scripts.Data.Services
                     File.Move(tempFilePath, FilePath);
                 }
             }
+            // Catching all kind of exceptions with some behaviour
+            catch (DirectoryNotFoundException e)
+            {
+                _logReporter.ReportError($"Missing directory for replace/move during SaveOperation: {e.Message}");
+                // Try to create directory and retry
+                try
+                {
+                    var directory = Path.GetDirectoryName(FilePath);
+                    if (directory != null)
+                    {
+                        Directory.CreateDirectory(directory);
+                        //TODO change retry logic to prevent recursion
+                        await SaveOperation(progress);
+                    }
+                    else
+                    {
+                        _logReporter.ReportError("Provided directory is null");
+                    }
+                }
+                catch (Exception retryEx)
+                {
+                    _logReporter.ReportError($"Failed to create directory and retry save: {retryEx.Message}");
+                }
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                //TODO Ask permissions and try again & notify user & return Failed to handle it in manager with different system
+
+                _logReporter.ReportError($"Permission denied saving file: {e.Message}");
+            }
+            catch (IOException e)
+            {
+                _logReporter.ReportError($"I/O error during save: {e.Message}");
+
+                // Retries to perform saveOperation
+                for (int i = 0; i < 3; i++)
+                {
+                    await Task.Delay(100);
+                    try
+                    {
+                        //TODO change retry logic to prevent recursion
+                        await SaveOperation(progress);
+                        return;
+                    }
+                    catch (Exception retryEx)
+                    {
+                        _logReporter.ReportLog($"I/O error during save retry operation: {retryEx.Message}");
+                    }
+                }
+
+                _logReporter.ReportError("Save failed after retries.");
+            }
             catch (Exception e)
             {
-                _logReporter.ReportError(e.Message);
+                // Fallback for truly unanticipated issues, watch in prod logs and review
+                _logReporter.ReportError($"Unexpected error during save: {e.Message}");
             }
         }
 
-        // TODO implement another logic of backup saving
-
-        // versioning
-
+        // TODO implement another logic of backup saving - e.g. versioning
         private T GetBackupSave()
         {
             return CreateNewSave();
