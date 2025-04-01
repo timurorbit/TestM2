@@ -27,6 +27,20 @@ namespace _3_Scripts.Data
             InvokeChange();
         }
 
+        public bool isValid()
+        {
+            if (_currentLevel < 0)
+            {
+                return false;
+            }
+            if (_previousHighScore is > 100 or < 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public int CurrentLevel
         {
             get => _currentLevel;
